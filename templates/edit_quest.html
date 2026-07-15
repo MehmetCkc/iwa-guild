@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Quest Sessions{% endblock %}
+
+{% block content %}
+<div class="quest-detail-board py-5">
+    <div class="quest-card detailed p-4 p-lg-5">
+        <form action="{{ url_for('edit_quest', quest_id=quest.id) }}" method="post">
+            <div class="mb-4">
+                <h1 class="display-6 fw-bold mb-2">Edit {{ quest.Title }} Sessions</h1>
+                <p class="text-secondary mb-0">
+                    Only the session day, time, and location can be changed.
+                </p>
+            </div>
+
+            <div class="d-grid gap-3">
+                {% for i in range(3) %}
+                    {% set session = sessions[i] if i < sessions|length else none %}
+                    <div class="row g-3 align-items-end border rounded-3 bg-light bg-opacity-75 p-3">
+                        <input
+                            type="hidden"
+                            name="session_id"
+                            value="{{ session.sessionId if session else '' }}">
+
+                        <h2 class="h6 mb-0">
+                            Session {{ i + 1 }}
+                            {% if not session %}<span class="fw-normal text-secondary">(Optional)</span>{% endif %}
+                        </h2>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Day</label>
+                            <select class="form-select" name="session_day" {% if session %}required{% endif %}>
+                                <option value="" {% if not session %}selected{% endif %}>No session</option>
+                                {% for day_number, day_name in [(1, "Monday"), (2, "Tuesday"), (3, "Wednesday"), (4, "Thursday"), (5, "Friday"), (6, "Saturday"), (7, "Sunday")] %}
+                                    <option value="{{ day_number }}" {% if session and session.date == day_number %}selected{% endif %}>
+                                        {{ day_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Starting Time</label>
+                            <input
+                                type="time"
+                                class="form-control"
+                                name="session_time"
+                                value="{{ session.time if session else '' }}"
+                                {% if session %}required{% endif %}>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Location</label>
+                            <select class="form-select" name="session_location" {% if session %}required{% endif %}>
+                                <option value="" {% if not session %}selected{% endif %}>No location</option>
+                                {% for location in quest_locations %}
+                                    <option value="{{ location }}" {% if session and session.location == location %}selected{% endif %}>
+                                        {{ location }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {% if session %}
+                            <div class="col-12 d-flex justify-content-end">
+                                <button
+                                    type="submit"
+                                    formaction="{{ url_for('delete_session', session_id=session.sessionId) }}"
+                                    formmethod="post"
+                                    formnovalidate
+                                    class="btn btn-outline-danger">
+                                    Delete Session
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-grid d-md-flex justify-content-md-end mt-4">
+                <button type="submit" class="btn btn-warning btn-lg px-5">
+                    Update Sessions
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% if index_nav %}
+    <section class="index-nav position-relative">
+        <div>
+            
+        </div>
+        <input type="text" id="quest-search" placeholder="Search..." class="search position-absolute d-flex">
+        <div class="filters-bar position-absolute">
+            <div class="row g-3 justify-content-center w-100 m-0">
+                <div class="col-4">
+                <select id="day-filter" name="day" class="form-select w-100">
+                    <option value="">All Days</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="7">Sunday</option>
+                </select>
+                </div>
+
+                <div class="col-4">
+                    <select id="quest-type-filter" name="quest_type" class="form-select w-100">
+                        <option value="">All Types</option>
+                        {% for quest_type in quest_types %}
+                            <option value="{{ quest_type }}">{{ quest_type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-4">
+                    <select id="difficulty-filter" name="difficulty" class="form-select w-100">
+                        <option value="">All Levels</option>
+                        {% for difficulty in quest_difficulties %}
+                            <option value="{{ difficulty|lower }}">{{ difficulty }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar d-flex justify-content-between align-items-center">
+            <a class="navbar-logo" href="{{ url_for('home') }}"></a>
+            {% if current_user.is_authenticated and current_user.type == "adventurer" %}
+            <div class="navbar-buttons d-flex gap-3">
+                <a class="btn btn-navbar" href="{{ url_for('my_quests') }}">My Quests</a>
+                <div class="dropdown">
+                    <button class="dropdown-btn">
+                    <img 
+                        src="{{ url_for('static', filename=current_user.image or 'images/fallback.webp') }}"
+                        alt="Profile image"
+                        class="navbar-profile-img"
+                    > 
+                    </button>
+                    <div class="dropdown-content">
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+                        <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+                
+            </div>
+            {% elif not current_user.is_authenticated %}
+            <div class="navbar-buttons d-flex gap-3">
+                <a class="btn btn-navbar" href="{{ url_for('login') }}">Log in</a>
+                <a class="btn btn-navbar" href="{{ url_for('signup') }}">Sign up</a>
+            </div>
+            {% elif current_user.is_authenticated and current_user.type == "guild_master" %}
+            <div class="navbar-buttons d-flex gap-3">
+                <a class="btn btn-navbar" href="{{ url_for('add_quest') }}">Add Quest</a>
+                <div class="dropdown">
+                    <button class="dropdown-btn">
+                    <img 
+                        src="{{ url_for('static', filename=current_user.image or 'images/fallback.webp') }}"
+                        alt="Profile image"
+                        class="navbar-profile-img"
+                    >
+                    </button>
+                    <div class="dropdown-content">
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+                        <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+         </nav>
+    </section>
+    {% else %}
+     <nav class="navbar d-flex justify-content-between align-items-center">
+            <a class="navbar-logo" href="{{ url_for('home') }}"></a>
+             {% if current_user.is_authenticated %}
+            <div class="navbar-buttons d-flex gap-3">
+                <a class="btn btn-navbar" href="{{ url_for('my_quests') }}">My Quests</a>
+                <div class="dropdown">
+                    <button class="dropdown-btn">
+                    <img 
+                        src="{{ url_for('static', filename=current_user.image or 'images/fallback.webp') }}"
+                        alt="Profile image"
+                        class="navbar-profile-img"
+                    >
+                    </button>
+                    <div class="dropdown-content">
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a>
+                        <a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="navbar-buttons d-flex gap-3">
+                <a class="btn btn-navbar" href="{{ url_for('login') }}">Log in</a>
+                <a class="btn btn-navbar" href="{{ url_for('signup') }}">Sign up</a>
+            </div>
+            {% endif %}
+         </nav>
+    
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container position-fixed top-0 start-50 translate-middle-x mt-3"
+             style="z-index: 9999;">
+            {% for category, message in messages %}
+                <div class="alert flash-message
+                    {% if category == 'error' %}
+                        alert-danger
+                    {% elif category == 'success' %}
+                        alert-success
+                    {% else %}
+                        alert-warning
+                    {% endif %}
+                    shadow">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

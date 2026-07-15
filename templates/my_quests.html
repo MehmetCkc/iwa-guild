@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Quests
+{% endblock %}
+
+{% block content %}
+<section class="quest-board">
+    {% for quest in my_quests %}
+    
+    <a class="quest-card position-relative" href="{{ url_for('quest_detail', quest_id=quest.id) }}">
+        <div class="pin position-absolute top-0 start-50 translate-middle "></div>
+        <img
+            src="{{ quest.image or '/static/images/fallback.webp' }}"
+            alt="Quest image"
+            class="quest-card-img">
+        <h2 class="quest-card-title">{{ quest.Title }}</h2>
+        {% if quest.description|length > 100 %}
+        <p class="quest-card-description">{{ quest.description[:100] }}...</p>
+        {% else %}
+        <p class="quest-card-description">{{ quest.description }}</p>
+        {% endif %}
+        <section class="quest-card-info w-100 d-flex justify-content-between">
+            <div class="ms-4">
+                <div><i class="bi bi-hourglass-split"></i> {{ quest.duration }}</div>
+                <div><i class="bi bi-hash"></i> {{ quest.type }}</div>
+                <div><i class="bi bi-star"></i> Level: {{ quest.level }}</div>
+            </div>
+            <div class="me-4">
+                <div><i class="bi bi-calendar"></i> Day: {{ quest.booking_day }}</div>
+                <div><i class="bi bi-clock"></i> Time: {{ quest.booking_time }}</div>
+                <div><i class="bi bi-geo-alt-fill"></i> {{ quest.booking_location }}</div>
+                <div><i class="bi bi-people-fill"></i> People: {{ quest.booking_places }}</div>
+                <div>
+                    {% if quest.booking_role == "warrior" %}
+                        <i class="bi bi-shield-fill"></i> Booked as Warrior
+                    {% elif quest.booking_role == "mage" %}
+                        <i class="bi bi-lightning-fill"></i> Booked as Mage
+                    {% elif quest.booking_role == "healer" %}
+                        <i class="bi bi-heart-fill"></i> Booked as Healer
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </a>
+    {% endfor %}
+</section>
+{% endblock %}

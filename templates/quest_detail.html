@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %} Quest-Detail {% endblock %}
+
+{% block content %}
+<div class="quest-detail-board">
+<div class="quest-card detailed">
+    <img
+        src="{{ quest.image or '/static/images/fallback.webp' }}"
+        alt="Quest image"
+        class="quest-card-img">
+    <h2 class="quest-card-title fs-bold fs-1">{{ quest.Title }}</h2>
+    <p class="quest-card-description fs-4">{{ quest.description }}</p>   
+    <section class="boss-info">
+        <div>
+            <div class="boss-info-img">
+                <img
+                    src="{{ quest["boss-image"] or '/static/images/fallback.webp' }}"
+                    alt="Boss image"
+                    class="quest-card-img">
+                    <p class="fs-4">{{ quest["boss-description"] }}</p>
+            </div>
+        </div>
+        <div>
+            <div>
+                <ul class="calendar-detailed">
+        {% for day_number, short_name in weekdays %}
+        <li>
+            <button
+                type="button"
+                data-day="{{ day_number }}"
+                aria-pressed="{{ 'true' if day_number == selected_day else 'false' }}"
+                class="calendar-btn{% if day_number in session_days %} has-session{% endif %}{% if day_number == selected_day %} has-selected{% endif %}">
+                {{ short_name }}
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+            </div>
+            <div id="session-list">
+                {% for session in sessions %}
+                    <article
+                        class="session-card"
+                        data-day="{{ session.date }}"
+                        data-session-id="{{ session.sessionId }}"
+                        {% if session.date != selected_day %}hidden{% endif %}>
+                        <p class="p-2 bg-secondary rounded w-50">{{ session.time }} - {{ session.location }}</p>
+                        <div class="session-capacities">
+                            <p><i class="bi bi-shield-fill"></i> Warrior: {{ session.warrior }}</p>
+                            <p><i class="bi bi-lightning-fill"></i> Mage: {{ session.mage }}</p>
+                            <p><i class="bi bi-heart-fill"></i> Healer: {{ session.healer }}</p>
+                        </div>
+
+                        {% if user.is_authenticated and user.type == 'guild_master' %}
+                            <form action="{{ url_for('delete_session', session_id=session.sessionId) }}" method="post">
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger mb-2"
+                                    {% if session.sessionId not in deletable_session_ids %}disabled{% endif %}>
+                                    Delete Session
+                                </button>
+                            </form>
+                            {% if session.sessionId not in deletable_session_ids %}
+                                <small class="text-danger">
+                                    This session has a booking or starts in 8 hours or less.
+                                </small>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if user.is_authenticated and user.type == 'adventurer' %}
+                            <form
+                                action="{{ url_for('book_quest', session_id=session.sessionId) }}"
+                                method="post"
+                                class="join-as d-flex flex-column align-items-center">
+                                <input type="hidden" name="q_day" value="{{ session.date }}">
+                                <input type="hidden" name="q_time" value="{{ session.time }}">
+
+                                <p class="fw-bold fs-4">Join as</p>
+                                <div class="join-as-btns d-flex justify-content-center gap-3">
+                                    <input
+                                        type="radio"
+                                        class="btn-check"
+                                        name="user_role"
+                                        id="warrior-{{ session.sessionId }}"
+                                        value="warrior"
+                                        required
+                                        {% if session.warrior <= 0 %}disabled{% endif %}>
+
+                                    <label
+                                        class="btn btn-outline-dark"
+                                        for="warrior-{{ session.sessionId }}">
+                                        <i class="bi bi-shield-fill"></i>
+                                    </label>
+
+
+                                    <input
+                                        type="radio"
+                                        class="btn-check"
+                                        name="user_role"
+                                        id="mage-{{ session.sessionId }}"
+                                        value="mage"
+                                        required
+                                        {% if session.mage <= 0 %}disabled{% endif %}>
+
+                                    <label
+                                        class="btn btn-outline-dark"
+                                        for="mage-{{ session.sessionId }}">
+                                        <i class="bi bi-lightning-fill"></i>
+                                    </label>
+
+
+                                    <input
+                                        type="radio"
+                                        class="btn-check"
+                                        name="user_role"
+                                        id="healer-{{ session.sessionId }}"
+                                        value="healer"
+                                        required
+                                        {% if session.healer <= 0 %}disabled{% endif %}>
+
+                                    <label
+                                        class="btn btn-outline-dark"
+                                        for="healer-{{ session.sessionId }}">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </label>
+
+                                </div>
+                                {% if user.is_authenticated and user.type == 'adventurer' and not isSessionBookedByUser(session.sessionId, current_user.id) %}
+                                <div class="d-flex gap-2 w-100 mt-3">
+                                    <select name="number_of_places" class="form-select w-auto" required>
+                                        <option value="1">1 person</option>
+                                        <option value="2">2 people</option>
+                                    </select>
+
+                                    <button type="submit" class="btn btn-warning flex-grow-1">
+                                        Book Time
+                                    </button>
+                                </div>
+                                {% elif isSessionBookedByUser(session.sessionId, current_user.id) %}
+                                <button
+                                    type="submit"
+                                    formaction="{{ url_for('cancel_booking', session_id=session.sessionId) }}"
+                                    formmethod="post"
+                                    formnovalidate
+                                    class="btn btn-warning w-100 mt-3"
+                                    {% if session.sessionId not in changeable_session_ids %}disabled{% endif %}>
+                                    Cancel Booking
+                                </button>
+                                {% if session.sessionId not in changeable_session_ids %}
+                                    <small class="text-danger mt-2">Cancellation closes 8 hours before the session.</small>
+                                {% endif %}
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+                <p id="no-sessions" {% if selected_sessions %}hidden{% endif %}>
+                    No sessions scheduled for this day.
+                </p>
+            </div>
+            {% if user.is_authenticated and user.type == 'guild_master' %}
+                {% if can_edit %}
+                    <a href="{{ url_for('edit_quest', quest_id=quest.id) }}" class="book-btn">Edit Quest</a>
+                {% else %}
+                    <button type="button" class="book-btn opacity-50" disabled>
+                        Edit Quest
+                    </button>
+                {% endif %}
+
+                <form action="{{ url_for('delete_quest', quest_id=quest.id) }}" method="post" class="mt-3">
+                    <button type="submit" class="btn btn-danger w-100" {% if not can_delete %}disabled{% endif %}>
+                        Delete Quest
+                    </button>
+                </form>
+                {% if not can_delete %}
+                    <p class="text-danger mt-2">
+                        A quest can only be deleted when it has no bookings and every session is more than 8 hours away.
+                    </p>
+                {% endif %}
+            {% elif not user.is_authenticated %}
+            <a href="{{ url_for('login') }}" class="book-btn">Log in to Book</a>
+            {% endif %}
+
+        </div>
+        
+
+    </section>
+
+</div>
+</div>
+
+{% endblock %}  

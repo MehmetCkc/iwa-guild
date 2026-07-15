@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+
+<section class="quest-board">
+    {% for quest in quests %}
+    
+    <a
+        class="quest-card position-relative{% if quest.fully_booked %} fully-booked{% endif %}"
+        href="{{ url_for('quest_detail', quest_id=quest.id) }}"
+        data-search="{{ (quest.Title ~ ' ' ~ quest.description)|lower }}"
+        data-type="{{ quest.type|lower }}"
+        data-difficulty="{{ quest.level|lower }}"
+        data-days="{{ quest.days }}">
+        <div class="pin position-absolute top-0 start-50 translate-middle "></div>
+        <img
+            src="{{ quest.image or '/static/images/fallback.webp' }}"
+            alt="Quest image"
+            class="quest-card-img">
+        <h2 class="quest-card-title">{{ quest.Title }}</h2>
+        {% if quest.description|length > 100 %}
+        <p class="quest-card-description">{{ quest.description[:100] }}...</p>
+        {% else %}
+        <p class="quest-card-description">{{ quest.description }}</p>
+        {% endif %}
+        <section class="quest-card-info w-100 d-flex justify-content-between">
+            <div class="ms-4">
+                <div><i class="bi bi-hourglass-split"></i> {{quest.duration}}</div>
+                <div><i class="bi bi-hash"></i> {{quest.type}}</div>
+                <div><i class="bi bi-star"></i> Level: {{ quest.level }}</div>
+                {% if quest.closest_day %}
+                <div><i class="bi bi-calendar-event"></i> Next: {{ quest.closest_day }} {{ quest.closest_time }}</div>
+                <div><i class="bi bi-geo-alt-fill"></i> {{ quest.closest_location }}</div>
+                {% endif %}
+            </div>
+            <div class="me-4">
+                <div><i class="bi bi-shield-fill"></i> Warrior: {{ quest["warrior-empty"] }}</div>
+                <div><i class="bi bi-lightning-fill"></i> Mage: {{ quest["mage-empty"] }}</div>
+                <div><i class="bi bi-heart-fill"></i> Healer: {{ quest["healer-empty"] }}</div>
+            </div>
+        </section>
+    </a>
+    {% endfor %}
+</section>
+
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Add Quest{% endblock %}
+
+{% block content %}
+<div class="quest-detail-board py-5">
+<div class="quest-card detailed p-4 p-lg-5">
+    <form action="{{ url_for('add_quest') }}" method="post" enctype="multipart/form-data">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="display-6 fw-bold mb-0">Create a New Quest</h1>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="row g-4">
+            <section class="col-12 col-lg-5" aria-labelledby="images-heading">
+                <h2 id="images-heading" class="h4 mb-3">Quest Images</h2>
+
+                <div class="card bg-light bg-opacity-75 shadow-sm mb-4">
+                    <div class="card-body">
+                        <label for="q_image" class="form-label fw-bold">Promotional Image</label>
+                        <input
+                            type="file"
+                            class="form-control quest-image-input"
+                            id="q_image"
+                            name="q_image"
+                            accept="image/png,image/jpeg,image/webp"
+                            required>
+                        <div class="form-text">Required. Upload a PNG, JPG, JPEG, or WEBP image.</div>
+                    </div>
+                </div>
+
+                <div class="card bg-light bg-opacity-75 shadow-sm">
+                    <div class="card-body">
+                        <label for="q_boss_image" class="form-label fw-bold">Boss Image</label>
+                        <input
+                            type="file"
+                            class="form-control quest-image-input"
+                            id="q_boss_image"
+                            name="q_boss_image"
+                            accept="image/png,image/jpeg,image/webp">
+                        <div class="form-text">Optional. The default boss image is used when empty.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-12 col-lg-7" aria-labelledby="information-heading">
+                <h2 id="information-heading" class="h4 mb-3">Quest Information</h2>
+
+                <div class="mb-3">
+                    <label for="q_title" class="form-label fw-bold">Quest Title</label>
+                    <input type="text" class="form-control" id="q_title" name="q_title" maxlength="100" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="q_description" class="form-label fw-bold">Description</label>
+                    <textarea class="form-control" id="q_description" name="q_description" rows="5" required></textarea>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-4">
+                        <label for="q_duration" class="form-label fw-bold">Duration</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="q_duration" name="q_duration" min="1" required>
+                            <span class="input-group-text">minutes</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="q_type" class="form-label fw-bold">Quest Type</label>
+                        <select class="form-select" id="q_type" name="q_type" required>
+                            <option value="" selected disabled>Select a type</option>
+                            {% for quest_type in quest_types %}
+                                <option value="{{ quest_type }}">{{ quest_type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="q_difficulty" class="form-label fw-bold">Difficulty</label>
+                        <select class="form-select" id="q_difficulty" name="q_difficulty" required>
+                            <option value="" selected disabled>Select difficulty</option>
+                            {% for difficulty in quest_difficulties %}
+                                <option value="{{ difficulty|lower }}">{{ difficulty }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="q_boss_description" class="form-label fw-bold">Boss Description</label>
+                    <textarea class="form-control" id="q_boss_description" name="q_boss_description" rows="3"></textarea>
+                    <div class="form-text">Optional.</div>
+                </div>
+            </section>
+
+            <section class="col-12" aria-labelledby="sessions-heading">
+                <div class="mb-3">
+                    <h2 id="sessions-heading" class="h4 mb-1">Quest Sessions</h2>
+                    <p class="text-secondary mb-0">
+                        Add up to three sessions. The first session is required and the other two are optional.
+                    </p>
+                </div>
+
+                <div class="d-grid gap-3">
+                    {% for session_number in range(1, 4) %}
+                    <div class="quest-session-row row g-3 align-items-end border rounded-3 bg-light bg-opacity-75 p-3">
+                        <h3 class="h6 mb-0">
+                            Session {{ session_number }}
+                            {% if session_number > 1 %}<span class="fw-normal text-secondary">(Optional)</span>{% endif %}
+                        </h3>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Day</label>
+                            <select class="form-select" name="session_day" {% if session_number == 1 %}required{% endif %}>
+                                <option value="" selected {% if session_number == 1 %}disabled{% endif %}>
+                                    {% if session_number == 1 %}Select day{% else %}No session{% endif %}
+                                </option>
+                                <option value="1">Monday</option>
+                                <option value="2">Tuesday</option>
+                                <option value="3">Wednesday</option>
+                                <option value="4">Thursday</option>
+                                <option value="5">Friday</option>
+                                <option value="6">Saturday</option>
+                                <option value="7">Sunday</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Starting Time</label>
+                            <input type="time" class="form-control" name="session_time" {% if session_number == 1 %}required{% endif %}>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold">Location</label>
+                            <select class="form-select" name="session_location" {% if session_number == 1 %}required{% endif %}>
+                                <option value="" selected {% if session_number == 1 %}disabled{% endif %}>
+                                    {% if session_number == 1 %}Select location{% else %}No location{% endif %}
+                                </option>
+                                {% for location in quest_locations %}
+                                    <option value="{{ location }}">{{ location }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <div class="d-grid d-md-flex justify-content-md-end mt-4">
+            <button type="submit" class="btn btn-warning btn-lg px-5">Create Quest</button>
+        </div>
+    </form>
+</div>
+</div>
+
+{% endblock %}
